@@ -6,7 +6,3 @@ This arduino code is used in conjection with a Netduino powered Pinewood Derby T
 http://www.youtube.com/watch?v=XtziGewhQ8U
 
 https://thelevers-public.sharepoint.com/Pages/IMG_5491.png
-
-https://thelevers-public.sharepoint.com/Pages/IMG_5498.png
-
-https://thelevers-public.sharepoint.com/Pages/IMG_5499.png
