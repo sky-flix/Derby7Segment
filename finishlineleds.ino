@@ -21,23 +21,9 @@ String content = "";
 //I chose to use a software serial library to make uploading new code to the Arduino easier
 AltSoftSerial mySerial;
 
-//These string indeces correspond directly to a variable on the Netduino indicating an error
-const char* Decode[10]={
-"uhoh    StArt   GAtE IS CloSEd  ",
-"uhoh    StArt   GAtE IS OpEn    ",
-"uhoh    LAnE1   rEAd incorrEctlY",
-"uhoh    LAnE2   rEAd incorrEctlY",
-"uhoh    LAnE3   rEAd incorrEctlY",
-"uhoh    LAnE4   rEAd incorrEctlY",
-"uhoh    LAnE5   rEAd incorrEctlY",
-"uhoh    LAnE6   rEAd incorrEctlY",
-"uhoh    LAnE7   rEAd incorrEctlY",
-"uhoh    LAnE8   rEAd incorrEctlY"};
-      
-
 void setup() {
   Wire.begin(); //Join the bus as master
-  mySerial.begin(57600); //TX-Pin9   RX-Pin8   (PWM not usable on pin10)
+  mySerial.begin(9600); //TX-Pin9   RX-Pin8   (PWM not usable on pin10)
   //Serial.begin(9600);
   
   //Send the reset command to the display - this forces the cursor to return to the beginning of the display
@@ -89,25 +75,9 @@ void loop() {
     //what command did we receive?
     switch (InString[0]) {
       
-      case 'D': // we received a command to decode a variable from the Netduino Timer - ex: D3 indicates that Lane 2
-                // was read incorrectly
-        
-        messageNumber = (InString[1] - '0'); // Get the integer value of a number character by subtracting character 0 from it.
-        
-        if (messageNumber >= 0 & messageNumber < 10) // Is this a valid index in our Decode array?
-        {
-          for (byte l=0; l<8; l++) // cycle through each lane
-          {
-            for (byte c=0; c<4; c++) displayWord[c]=Decode[messageNumber][(l*4) + c]; // Populate a character array string called displayWord for each lane
-            displayWord[4]='\0'; // null terminate the character array
-            i2cSendChar(LaneAddresses[l], displayWord); // send the character array to the 7-segment display
-          }
-        }
-        break;
-        
-      
       case 'F':
       //We must have received a string of finish times - ex: "F 1 5.7653 2 5.8888 3 6.1111"
+      
         char LaneTime[5];
         for (byte l=0; l<8; l++)
         {
@@ -123,7 +93,9 @@ void loop() {
         
         break;
       
-      case 'L': // we received lane positions indicator - ex: L41 means Lane 4 finished 1st
+      case 'L':
+      // we received lane positions indicator - ex: L41 means Lane 4 finished 1st
+      
         laneInt = InString[1] - '0';
         lanePos = InString[2];
         LanePositionsArray[laneInt - 1] = lanePos;
@@ -137,7 +109,9 @@ void loop() {
         break;
       
       
-      case 'P': // Print positions
+      case 'P':
+      // Display finishing Positions for each lane
+      
         for (byte l = 0 ; l < 8 ; l++) {
           Wire.beginTransmission(LaneAddresses[7-l]);
           Wire.write(0x76);
@@ -148,7 +122,8 @@ void loop() {
         }
         break;
 
-      case 'R': // update all lane displays with raw text - ex: Rln 8ln 7ln 6ln 5ln 4ln 3ln 2ln 1
+      case 'R':
+      // Display raw text string across all lanes - ex: Rln 8ln 7ln 6ln 5ln 4ln 3ln 2ln 1
         
         for (byte l=0; l<8; l++)
         {
@@ -158,7 +133,8 @@ void loop() {
         }
         break;
 
-      case 'S': // we received a single lane text string - ex: S6tESt means display "tESt" on Lane 6
+      case 'S':
+      // Display a 4 digit text string across a single lane - ex: S6tESt means display "tESt" on Lane 6 without erasing any other lanes
         laneInt = InString[1] - '0';
         
         for (byte c=0; c<4; c++) displayWord[c]=InString[2 + c];
@@ -169,13 +145,15 @@ void loop() {
       
       
               
-      case 'T': // Print finish times per lane
+      case 'T':
+      // Display finish Times for each lane
         for (byte l=0; l<8; l++)
           i2cSendTime(LaneAddresses[7-l],LaneTimesArray[l]);
         break;
       
       
-      case 'X': // clear the display entirely
+      case 'X':
+      // Clear all displays
         for (byte i = 0 ; i < 8 ; i++)
         {
           Wire.beginTransmission(LaneAddresses[i]);
@@ -192,6 +170,7 @@ void loop() {
     while(Serial.read() >= 0){};  
     
   } // end if string complete section
+  
 } // end main loop
 
 
